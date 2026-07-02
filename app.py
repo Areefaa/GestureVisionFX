@@ -33,7 +33,7 @@ while True:
 
     frame = ui.draw(frame, gesture)
 
-    percent = int(effect.blur_level / effect.max_blur * 100)
+    percent = int(effect.alpha * 100)
 
     cv2.putText(
         frame,

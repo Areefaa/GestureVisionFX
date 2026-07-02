@@ -4,35 +4,52 @@ import cv2
 class BlurEffect:
 
     def __init__(self):
-        self.blur_level = 0          
-        self.max_blur = 41           
-        self.speed = 2               
+
+        # opacity blur
+        self.alpha = 0.0
+
+        # kecepatan animasi
+        self.speed = 0.04
 
     def update(self, gesture):
 
         if gesture == "Victory":
-            self.blur_level = min(
-                self.blur_level + self.speed,
-                self.max_blur
+
+            self.alpha = min(
+                self.alpha + self.speed,
+                1.0
             )
+
         else:
-            self.blur_level = max(
-                self.blur_level - self.speed,
-                0
+
+            self.alpha = max(
+                self.alpha - self.speed,
+                0.0
             )
 
     def apply(self, frame):
 
-        if self.blur_level < 3:
+        if self.alpha <= 0:
             return frame
 
-        kernel = int(self.blur_level)
-
-        if kernel % 2 == 0:
-            kernel += 1
-
-        return cv2.GaussianBlur(
+        blurred = cv2.GaussianBlur(
             frame,
-            (kernel, kernel),
+            (41,41),
             0
         )
+
+        output = cv2.addWeighted(
+
+            blurred,
+
+            self.alpha,
+
+            frame,
+
+            1-self.alpha,
+
+            0
+
+        )
+
+        return output
