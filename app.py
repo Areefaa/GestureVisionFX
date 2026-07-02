@@ -2,17 +2,14 @@ import cv2
 
 from detector import GestureDetector
 from effects import BlurEffect
-from gesture_hold import GestureHold
+from countdown import Countdown
 from ui import UI
 
 MODEL_PATH = "assets/models/gesture_recognizer.task"
 
 detector = GestureDetector(MODEL_PATH)
-
 effect = BlurEffect()
-
-hold = GestureHold(hold_time=1.0)
-
+countdown = Countdown(duration=1.0)
 ui = UI()
 
 cap = cv2.VideoCapture(0)
@@ -30,66 +27,98 @@ while True:
 
     frame = cv2.flip(frame, 1)
 
+    # ==========================
+    # Gesture Detection
+    # ==========================
+
     gesture = detector.detect(frame)
 
-    hold.update(gesture)
+    # ==========================
+    # Countdown Logic
+    # ==========================
 
-    effect.update(hold.active)
+    if gesture == "Victory":
+
+        countdown.start()
+
+    else:
+
+        countdown.reset()
+
+    number = countdown.update()
+
+    # ==========================
+    # Blur
+    # ==========================
+
+    effect.update(countdown.finished)
 
     frame = effect.apply(frame)
 
+    # ==========================
+    # UI
+    # ==========================
+
     frame = ui.draw(frame, gesture)
 
-    percent = int(hold.progress() * 100)
+    # ==========================
+    # Status
+    # ==========================
 
-    cv2.putText(
-        frame,
-        f"Hold : {percent}%",
-        (20,80),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.8,
-        (255,255,255),
-        2
-    )
+    if countdown.finished:
 
-    bar_width = 250
-
-    filled = int(bar_width * hold.progress())
-
-    cv2.rectangle(
-        frame,
-        (20,100),
-        (20+bar_width,120),
-        (120,120,120),
-        2
-    )
-
-    cv2.rectangle(
-        frame,
-        (20,100),
-        (20+filled,120),
-        (255,255,255),
-        -1
-    )
-
-    if hold.active:
         status = "Blur Activated"
 
+    elif countdown.running():
+
+        status = "Countdown..."
+
     elif gesture == "Victory":
-        status = "Hold Gesture..."
+
+        status = "Starting..."
 
     else:
+
         status = "Waiting..."
 
     cv2.putText(
         frame,
         status,
-        (20,150),
+        (20,40),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.7,
+        0.8,
         (0,255,255),
         2
     )
+
+    # ==========================
+    # Countdown Number
+    # ==========================
+
+    if countdown.running():
+
+        overlay = frame.copy()
+
+        cv2.putText(
+            overlay,
+            str(number),
+            (
+                frame.shape[1]//2-40,
+                frame.shape[0]//2+30
+            ),
+            cv2.FONT_HERSHEY_DUPLEX,
+            5,
+            (255,255,255),
+            8
+        )
+
+        frame = cv2.addWeighted(
+            overlay,
+            0.8,
+            frame,
+            0.2,
+            0
+        )
 
     cv2.imshow("GestureVisionFX", frame)
 
