@@ -1,71 +1,91 @@
 import cv2
+import time
 
 
 class UI:
 
     def __init__(self):
 
-        self.alpha = 0.0
-        self.speed = 0.04
+        self.message = ""
+
+        self.show_until = 0
+
+        self.fade_time = 0.5
+
+        self.display_time = 2
+
+    def show(self, text):
+
+        self.message = text
+
+        self.show_until = time.time() + self.display_time
 
     def draw(self, frame, gesture):
 
-        if gesture == "Victory":
-            self.alpha = min(self.alpha + self.speed, 1.0)
+        if self.message == "":
+            return frame
+
+        now = time.time()
+
+        remain = self.show_until - now
+
+        if remain <= 0:
+
+            self.message = ""
+
+            return frame
+
+        total = self.display_time
+
+        elapsed = total - remain
+
+        if elapsed < self.fade_time:
+
+            alpha = elapsed / self.fade_time
+
+        elif remain < self.fade_time:
+
+            alpha = remain / self.fade_time
+
         else:
-            self.alpha = max(self.alpha - self.speed, 0.0)
 
-        # Gesture text
-        color = (0,255,0) if gesture else (0,0,255)
+            alpha = 1
 
-        cv2.putText(
-            frame,
-            f"Gesture : {gesture}",
-            (20,40),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            color,
-            2
+        overlay = frame.copy()
+
+        text = self.message
+
+        font = cv2.FONT_HERSHEY_DUPLEX
+
+        scale = 1.1
+
+        thickness = 2
+
+        (w,h), _ = cv2.getTextSize(
+            text,
+            font,
+            scale,
+            thickness
         )
 
-        if self.alpha > 0:
+        x = (frame.shape[1]-w)//2
 
-            overlay = frame.copy()
+        y = frame.shape[0]-70
 
-            text = "Foto Kita Blur..."
+        cv2.putText(
+            overlay,
+            text,
+            (x,y),
+            font,
+            scale,
+            (255,255,255),
+            thickness
+        )
 
-            font = cv2.FONT_HERSHEY_DUPLEX
-
-            scale = 1.2
-
-            thickness = 2
-
-            size = cv2.getTextSize(
-                text,
-                font,
-                scale,
-                thickness
-            )[0]
-
-            x = (frame.shape[1]-size[0])//2
-            y = frame.shape[0]-60
-
-            cv2.putText(
-                overlay,
-                text,
-                (x,y),
-                font,
-                scale,
-                (255,255,255),
-                thickness
-            )
-
-            frame = cv2.addWeighted(
-                overlay,
-                self.alpha,
-                frame,
-                1-self.alpha,
-                0
-            )
-
-        return frame
+        return cv2.addWeighted(
+            overlay,
+            alpha,
+            frame,
+            1-alpha,
+            0
+        )

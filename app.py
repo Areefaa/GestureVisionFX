@@ -40,6 +40,7 @@ while True:
 
     if countdown.finished and not flash_triggered:
         effect.trigger_flash()
+        # ui.show("Foto Kita Blur...")
         flash_triggered = True
 
     if not countdown.finished:
@@ -66,7 +67,7 @@ while True:
     cv2.putText(
         frame,
         status,
-        (20, 40),
+        (20, 80),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.8,
         (0, 255, 255),
