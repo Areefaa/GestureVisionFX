@@ -1,16 +1,28 @@
 import cv2
 
 
-def draw(frame, gesture):
+class UI:
 
-    text = gesture if gesture else "No Gesture"
+    def draw(self, frame, gesture):
 
-    cv2.putText(
-        frame,
-        text,
-        (20,40),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (0,255,0),
-        2
-    )
+        if gesture:
+
+            text = f"Gesture : {gesture}"
+            color = (0,255,0)
+
+        else:
+
+            text = "Gesture : None"
+            color = (0,0,255)
+
+        cv2.putText(
+            frame,
+            text,
+            (20,40),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            color,
+            2
+        )
+
+        return frame
