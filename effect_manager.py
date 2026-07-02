@@ -1,26 +1,76 @@
+import time
 import cv2
+
 
 class EffectManager:
 
     def __init__(self):
-        self.blur_strength = 0
+
+        self.alpha = 0.0
+        self.speed = 0.0001
+
+        self.start_time = None
+        self.active = False
+
+        self.hold_time = 0.01
 
     def update(self, gesture):
 
         if gesture == "Victory":
-            self.blur_strength = min(self.blur_strength + 3, 41)
+
+            if self.start_time is None:
+                self.start_time = time.time()
+
+            elapsed = time.time() - self.start_time
+
+            if elapsed >= self.hold_time:
+                self.active = True
 
         else:
-            self.blur_strength = max(self.blur_strength - 3, 0)
+
+            self.start_time = None
+            self.active = False
+
+        if self.active:
+
+            self.alpha = min(
+                self.alpha + self.speed,
+                1.0
+            )
+
+        else:
+
+            self.alpha = max(
+                self.alpha - self.speed,
+                0.0
+            )
 
     def apply(self, frame):
 
-        if self.blur_strength < 3:
+        if self.alpha <= 0:
             return frame
 
-        k = self.blur_strength
+        blurred = cv2.GaussianBlur(
+            frame,
+            (41,41),
+            0
+        )
 
-        if k % 2 == 0:
-            k += 1
+        return cv2.addWeighted(
+            blurred,
+            self.alpha,
+            frame,
+            1-self.alpha,
+            0
+        )
 
-        return cv2.GaussianBlur(frame, (k, k), 0)
+    def progress(self):
+
+        if self.start_time is None:
+            return 0
+
+        elapsed = time.time() - self.start_time
+
+        value = elapsed / self.hold_time
+
+        return min(value,1.0)

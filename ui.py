@@ -28,10 +28,6 @@ class UI:
             2
         )
 
-        # ==========================
-        # Foto Kita Blur...
-        # ==========================
-
         if self.alpha > 0:
 
             overlay = frame.copy()

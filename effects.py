@@ -5,15 +5,13 @@ class BlurEffect:
 
     def __init__(self):
 
-        # opacity blur
         self.alpha = 0.0
 
-        # kecepatan animasi
         self.speed = 0.04
 
-    def update(self, gesture):
+    def update(self, blur_active):
 
-        if gesture == "Victory":
+        if blur_active:
 
             self.alpha = min(
                 self.alpha + self.speed,
@@ -38,18 +36,10 @@ class BlurEffect:
             0
         )
 
-        output = cv2.addWeighted(
-
+        return cv2.addWeighted(
             blurred,
-
             self.alpha,
-
             frame,
-
             1-self.alpha,
-
             0
-
         )
-
-        return output

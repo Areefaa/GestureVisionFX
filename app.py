@@ -2,12 +2,17 @@ import cv2
 
 from detector import GestureDetector
 from effects import BlurEffect
+from gesture_hold import GestureHold
 from ui import UI
 
 MODEL_PATH = "assets/models/gesture_recognizer.task"
 
 detector = GestureDetector(MODEL_PATH)
+
 effect = BlurEffect()
+
+hold = GestureHold(hold_time=1.0)
+
 ui = UI()
 
 cap = cv2.VideoCapture(0)
@@ -27,17 +32,19 @@ while True:
 
     gesture = detector.detect(frame)
 
-    effect.update(gesture)
+    hold.update(gesture)
+
+    effect.update(hold.active)
 
     frame = effect.apply(frame)
 
     frame = ui.draw(frame, gesture)
 
-    percent = int(effect.alpha * 100)
+    percent = int(hold.progress() * 100)
 
     cv2.putText(
         frame,
-        f"Blur : {percent}%",
+        f"Hold : {percent}%",
         (20,80),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.8,
@@ -47,7 +54,7 @@ while True:
 
     bar_width = 250
 
-    filled = int(bar_width * percent / 100)
+    filled = int(bar_width * hold.progress())
 
     cv2.rectangle(
         frame,
@@ -65,11 +72,28 @@ while True:
         -1
     )
 
+    if hold.active:
+        status = "Blur Activated"
+
+    elif gesture == "Victory":
+        status = "Hold Gesture..."
+
+    else:
+        status = "Waiting..."
+
+    cv2.putText(
+        frame,
+        status,
+        (20,150),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (0,255,255),
+        2
+    )
+
     cv2.imshow("GestureVisionFX", frame)
 
-    key = cv2.waitKey(1)
-
-    if key == ord("q"):
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 cap.release()
