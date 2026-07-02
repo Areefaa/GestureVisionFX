@@ -1,4 +1,10 @@
 import cv2
 
+
 def blur(frame):
-    return cv2.GaussianBlur(frame, (31, 31), 0)
+
+    return cv2.GaussianBlur(
+        frame,
+        (41,41),
+        0
+    )

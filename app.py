@@ -1,31 +1,34 @@
 import cv2
+
+from detector import GestureDetector
 from effects import blur
-from utils import draw_text
+from ui import draw
+
+MODEL_PATH = "assets/models/gesture_recognizer.task"
+
+detector = GestureDetector(MODEL_PATH)
 
 cap = cv2.VideoCapture(0)
 
-blur_on = False
-
 while True:
+
     ret, frame = cap.read()
 
     if not ret:
         break
 
-    frame = cv2.flip(frame, 1)
+    frame = cv2.flip(frame,1)
 
-    if blur_on:
+    gesture = detector.detect(frame)
+
+    if gesture == "Victory":
         frame = blur(frame)
-        draw_text(frame, "BLUR MODE")
-    else:
-        draw_text(frame, "NORMAL MODE")
+
+    draw(frame, gesture)
 
     cv2.imshow("GestureVisionFX", frame)
 
-    key = cv2.waitKey(1) & 0xFF
-
-    if key == ord("b"):
-        blur_on = not blur_on
+    key = cv2.waitKey(1)
 
     if key == ord("q"):
         break
